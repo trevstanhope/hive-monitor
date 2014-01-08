@@ -92,7 +92,10 @@ class HiveMind:
       data = self.arduino.readline()
       json = ast.literal_eval(data)
       for key in json:
-        log[key] = json[key] # store all items in arduino JSON to log
+	if (json[key] > 100):
+	  log[key] = 100 # limit to 100
+        else:
+	  log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
       print('--> ' + str(error))
 
