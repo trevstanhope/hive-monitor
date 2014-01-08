@@ -12,3 +12,5 @@ iface wlan0 inet static
   netmask 255.255.255.0
   wireless-channel 1
   wireless-mode ad-hoc
+  wireless-essid "NAME"
+  wireless-psk "PASSWORD"

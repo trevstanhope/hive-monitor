@@ -9,48 +9,38 @@
 #include "stdio.h"
 #include <DHT.h>
 #include <SoftwareSerial.h>
-//#include <SD.h>
 
 /* --- Pins --- */
-#define SD_PIN 10
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
-#define RPI_POWER_PIN A5
 
 /* --- Values --- */
-#define DHT_TYPE DHT11
+#define DHT_TYPE DHT22
 #define BAUD 9600
 #define CHARS 8
 #define BUFFER 128
 #define DIGITS 4
 #define PRECISION 2
-#define INTERVAL 1
-#define UPTIME 600
-#define DOWNTIME 3000
+#define INTERVAL 1000
 
 /* --- Functions --- */
-float get_int_C(void);
+float get_int_T(void);
 float get_int_RH(void);
-float get_ext_C(void);
+float get_ext_T(void);
 float get_ext_RH(void);
 
 /* --- Objects --- */
 DHT internal(DHT_INTERNAL_PIN, DHT_TYPE);
 DHT external(DHT_EXTERNAL_PIN, DHT_TYPE);
-//Sd2Card card;
-//SdVolume volume;
-//SdFile root;
-
-/* --- Strings --- */
-char int_C[CHARS];
+char int_T[CHARS];
 char int_RH[CHARS];
-char ext_C[CHARS];
+char ext_T[CHARS];
 char ext_RH[CHARS];
 char output[BUFFER];
-
-/* --- State --- */
-int counter = 0; // seconds on
-boolean on = true; // start on
+char int_T_key[] = "internal_temperature";
+char ext_T_key[] = "external_temperature";
+char int_RH_key[] = "internal_humidity";
+char ext_RH_key[] = "external_humidity";
 
 /* --- Setup --- */
 void setup() {
@@ -58,66 +48,27 @@ void setup() {
   // Setup Serial
   Serial.begin(BAUD);
   
-  // Setup Relay
-  pinMode(RPI_POWER_PIN, OUTPUT);
-  digitalWrite(RPI_POWER_PIN, LOW); // start on
-  
-  // Setup SD
-//  pinMode(SD_PIN, OUTPUT);
-//  while (!card.init(SPI_HALF_SPEED, SD_PIN)) {
-//    continue; // connection failed
-//  }
-//  if (!volume.init(card)) {
-//    return;
-//  }
-//  root.openRoot(volume);
-  
   // Setup Sensors
   internal.begin();
   external.begin();
+  
 }
 
 /* --- Loop --- */
 void loop() {
   
   // Read Sensors
-  dtostrf(get_ext_RH(), DIGITS, PRECISION, ext_RH); 
-  dtostrf(get_ext_C(), DIGITS, PRECISION, ext_C);
+  dtostrf(get_int_T(), DIGITS, PRECISION, int_T); 
+  dtostrf(get_ext_T(), DIGITS, PRECISION, ext_T);
   dtostrf(get_int_RH(), DIGITS, PRECISION, int_RH);
-  dtostrf(get_int_C(), DIGITS, PRECISION, int_C);
-  sprintf(output, "{'Internal_C':%s, 'External_C':%s, 'Internal_RH':%s, 'External_RH':%s}", int_C, ext_C, int_RH, ext_RH);
-  
-  // Log to file
-//  File dataFile = SD.open("datalog.txt", FILE_WRITE);
-//  dataFile.print(output);
-//  dataFile.close();
+  dtostrf(get_ext_T(), DIGITS, PRECISION, ext_RH);
+  sprintf(output, "{'%s':%s, '%s':%s, '%s':%s, '%s':%s}", int_T_key, int_T, ext_T_key, ext_T, int_RH_key,int_RH, ext_RH_key, ext_RH);
   
   // Send to RaspberryPi
   Serial.println(output);
-  delay(1000*INTERVAL);
+  delay(INTERVAL);
   Serial.flush();
-  
-  // Set RaspberryPi State
-  if (on) {
-    if (counter <= UPTIME) {
-      counter += INTERVAL;
-    }
-    else {
-      counter = 0;
-      on = false;
-      digitalWrite(RPI_POWER_PIN, HIGH);
-    }
-  }
-  else {
-    if (counter <= DOWNTIME) {
-      counter += INTERVAL;
-    }
-    else {
-      counter = 0;
-      on = true;
-      digitalWrite(RPI_POWER_PIN, LOW);
-    }
-  }
+ 
 }
 
 /* --- Get Internal Humidity --- */
@@ -132,7 +83,7 @@ float get_int_RH() {
 }
 
 /* --- Get Internal Temperature --- */
-float get_int_C() {
+float get_int_T() {
   float val = internal.readTemperature(); //  Serial.println(val);
   if (isnan(val)) {
     return 0;
@@ -154,7 +105,7 @@ float get_ext_RH() {
 }
 
 /* --- Get External Temperature --- */
-float get_ext_C() {
+float get_ext_T() {
   float val = external.readTemperature();
   if (isnan(val)) {
     return 0;
@@ -163,4 +114,3 @@ float get_ext_C() {
     return val;
   }
 }
-

@@ -21,15 +21,13 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
+ARDUINO_DEV = '/dev/ttyACM0'
 ARDUINO_BAUD = 9600
-UPDATE_INTERVAL = 10 # seconds until next graphic update
+UPDATE_INTERVAL = 1 # seconds until next graphic update
 GRAPH_INTERVAL = 86400 # seconds in the past to display
 COUCHDB_DATABASE = 'hivemind'
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
-try:
-  ARDUINO_DEV = sys.argv[1]
-except IndexError:
-  ARDUINO_DEV = '/dev/ttyS0'
+
 def py_error_handler(filename, line, function, err, fmt):
   pass
 C_ERROR_HANDLER = ERROR_HANDLER_FUNC(py_error_handler)
@@ -67,7 +65,8 @@ class HiveMind:
       
     ### Setup Mic
     try:
-      asound = cdll.LoadLibrary('libasound.so')
+      print('[Initializing Microphone]')
+      asound = cdll.LoadLibrary('libasound.so.2')
       asound.snd_lib_error_set_handler(C_ERROR_HANDLER) # Set error handler
       mic = pyaudio.PyAudio()
       self.stream = mic.open(format=FORMAT,channels=CHANNELS,rate=RATE,input=True,frames_per_buffer=CHUNK)
@@ -77,12 +76,13 @@ class HiveMind:
       
   ## Get Arduino data as JSON message
   def update(self):
-
+    
     ### New Log
     try:
       print('[Creating New Log Entry]')
       log = {}
       log['time'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+      log['unix_time'] = time.time()
     except Exception as error:
       print('--> ' + str(error))      
 
@@ -106,10 +106,10 @@ class HiveMind:
         wave_array = np.fromstring(data, dtype='int16')
         wave_fft = np.fft.fft(wave_array)
         wave_freqs = np.fft.fftfreq(len(wave_fft))
-        freq = wave_freqs[np.argmax(np.abs(wave_fft)**2)]
+        freqs = wave_freqs[np.argsort(np.abs(wave_fft)**2)]
         amplitude = np.sqrt(np.mean(np.abs(wave_fft)**2))
-        log['frequency'] = abs(freq*RATE)
-        log['decibels'] = 10*np.log10(amplitude)
+        log['frequency'] = abs(freqs[1023]*RATE)
+        log['amplitude'] = 10*np.log10(amplitude)
       except ValueError as error:
         print('--> ' + str(error))
     except Exception as error:
@@ -132,23 +132,22 @@ class HiveMind:
     with open('static/temperature.tsv', 'w') as tsvfile:
       print('[Querying Temperature]')
       tsvfile.write('date\tInternal\tExternal\n')
-      map_nodes = "function(doc) { if (doc) emit(doc); }"
+      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
       for row in matches:
         try:
-          print('--> Writing to TSV')
           date = row.key['time']
           internal = str(row.key['external_temperature'])
           external = str(row.key['internal_temperature'])
           tsvfile.write(date + '\t' + internal + '\t' + external + '\n')
         except Exception as error:
-          print('--> ERROR: ' + str(error))
+          print('--> ' + str(error))
           
     ### Humidity
     with open('static/humidity.tsv', 'w') as tsvfile:
       print('[Querying Humidity]')
       tsvfile.write('date\tInternal\tExternal\n')
-      map_nodes = "function(doc) { if (doc) emit(doc); }"
+      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
       for row in matches:
         try:
@@ -157,22 +156,22 @@ class HiveMind:
           external = str(row.key['internal_humidity'])
           tsvfile.write(date + '\t' + internal + '\t' + external + '\n')
         except Exception:
-          pass
+          print('--> ' + str(error))
 
     ### Sound
     with open('static/sound.tsv', 'w') as tsvfile:
       print('[Querying Sound]')
-      tsvfile.write('date\tFrequency\tAmplitude\n')
-      map_nodes = "function(doc) { if (doc) emit(doc); }"
+      tsvfile.write('date\tfrequency\ttype\n')
+      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
       for row in matches:
         try:
           date = row.key['time']
           frequency = str(row.key['frequency'])
-          amplitude = str(row.key['amplitude'])
-          tsvfile.write(date + '\t' + frequency + '\t' + amplitude + '\n')
+          mode = 'Major Frequency'
+          tsvfile.write(date + '\t' + frequency + '\t' + mode + '\n')
         except Exception:
-          pass
+          print('--> ' + str(error))
       
     ### HTML
     try:
