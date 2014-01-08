@@ -24,9 +24,9 @@ FORMAT = pyaudio.paInt16
 ARDUINO_DEV = '/dev/ttyS0'
 ARDUINO_BAUD = 9600
 ARDUINO_TIMEOUT = 1
-UPDATE_INTERVAL = 1 # seconds until next sensor update
-QUERY_INTERVAL = 5 # seconds until next graphic update
-GRAPH_INTERVAL = 86400 # seconds in the past to display
+UPDATE_INTERVAL = 4 # seconds until next sensor update
+QUERY_INTERVAL = 16 # seconds until next graphic update
+GRAPH_INTERVAL = 3600 # seconds in the past to display
 COUCHDB_DATABASE = 'hivemind'
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
 
@@ -42,7 +42,7 @@ class HiveMind:
     
     ### Monitors
     try:
-      print('[Initializing Monitors]')
+      print('\n[Initializing Monitors]')
       self.start_time = time.time()
       Monitor(cherrypy.engine, self.update, frequency=UPDATE_INTERVAL).subscribe()
       Monitor(cherrypy.engine, self.query, frequency=QUERY_INTERVAL).subscribe()
@@ -51,24 +51,26 @@ class HiveMind:
     
     ### Setup Arduino
     try:
-      print('[Initializing Arduino]')
+      print('\n[Initializing Arduino]')
       self.arduino = serial.Serial(ARDUINO_DEV,ARDUINO_BAUD,timeout=ARDUINO_TIMEOUT)
     except Exception as error:
       print('--> ' + str(error))
       
     ### Setup CouchDB
     try:
-      print('[Initializing CouchDB]')
+      print('\n[Initializing CouchDB]')
       server = couchdb.Server()
       self.couch = server[COUCHDB_DATABASE]
+      print('--> Using existing database: ' + COUCHDB_DATABASE)
     except Exception as error:
+      print('--> Creating new database: ' + COUCHDB_DATABASE)
       self.couch = server.create(COUCHDB_DATABASE)
     except ValueError as error:
       print('--> ' + str(error))
       
     ### Setup Mic
     try:
-      print('[Initializing Microphone]')
+      print('\n[Initializing Microphone]')
       asound = cdll.LoadLibrary('libasound.so.2')
       asound.snd_lib_error_set_handler(C_ERROR_HANDLER) # Set error handler
       mic = pyaudio.PyAudio()
@@ -82,18 +84,33 @@ class HiveMind:
     
     ### New Log
     try:
-      print('[Creating New Log Entry]')
-      log = {}
-      log['Date'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-      log['Time'] = time.time()
-      log['Internal_C'] = 0
-      log['External_C'] = 0
-      log['Internal_RH'] = 0
-      log['External_RH'] = 0
-      log['Frequency'] = 0
-      log['Amplitude'] = 0
+      print('\n[Creating New Log Entry]')
+      print('--> Values default to 0')
+      log = {
+        'Internal_C':0,
+        'External_C':0,
+        'Internal_RH':0,
+        'External_RH':0,
+        'Frequency':0,
+        'Amplitude':0
+        }
+      for key in log:
+        print(key + '\t:\t' + str(log[key]))
     except Exception as error:
-      print('--> ' + str(error))      
+      print('--> ' + str(error))
+
+    ### Time
+    try:
+      print('\n[Getting Current Time]')
+      local_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+      unix_time = time.time()
+      print('local_time\t:\t' + local_time)
+      print('unix_time\t:\t' + str(unix_time))
+      log['local_time'] = local_time
+      log['unix_time'] = unix_time
+    except Exception as error:
+      pass
+      
 
     ### Temp/Humidity
     try:
@@ -101,14 +118,14 @@ class HiveMind:
       data = self.arduino.readline()
       json = ast.literal_eval(data)
       for key in json:
+        print(str(key) + '\t:\t' + str(json[key]))
         if (json[key] > 100):
           print(' --> Temp/Humidity cannot exceed 100')
-	      log[key] = 100 # limit to 100
+          log[key] = 100 # limit to 100
         else:
-	        log[key] = json[key] # store all items in arduino JSON to log
+	      log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
       print('--> ' + str(error))
-      print('--> Values default to 0')
 
     ### Audio
     try:
@@ -122,12 +139,18 @@ class HiveMind:
         wave_freqs = np.fft.fftfreq(len(wave_fft))
         freqs = wave_freqs[np.argsort(np.abs(wave_fft)**2)]
         amplitude = np.sqrt(np.mean(np.abs(wave_fft)**2))
-        log['Frequency'] = abs(freqs[1023]*RATE)
+        hertz = abs(freqs[1023]*RATE)
+        decibels = 10*np.log10(amplitude)
+        log['Frequency'] = hertz
         if (amplitude == 0):
           print('--> Amplitude cannot be infinite')
-          log['Amplitude'] = 0
+          decibels = 0
         else:
-          log['Amplitude'] = 10*np.log10(amplitude)
+          decibels = 10*np.log10(amplitude)
+        log['Frequency'] = hertz
+        log['Amplitude'] = decibels
+        print('Amplitude' + ' \t:\t' + str(decibels))
+        print('Frequency' + ' \t:\t' + str(hertz))
       except ValueError as error:
         print('--> ' + str(error))
     except Exception as error:
@@ -136,9 +159,10 @@ class HiveMind:
     ### CouchDB
     try:
       print('\n[Writing Log to CouchDB]')
-      for key in log:
-        print('--> ' + key + '\t:\t' + str(log[key]))
-      self.couch.save(log)
+      self.couch.save(log) # modifies log, so do it last
+      print('--> Log saved successfully')
+      print('_id' + '\t:\t' + str(log['_id']))
+      print('_rev' + '\t:\t' + str(log['_rev']))
     except Exception as error:
       print('--> ' + str(error))  
   
@@ -147,34 +171,40 @@ class HiveMind:
     
     ### Query
     print('\n[Querying Recent Values]')
-    map_nodes = "function(doc) { if (doc.Time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
+    map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
-    values = []
+    values = [] # will fill with data points
     for row in matches:
       try:
-        unix_time = row.key['Time']
-        date = row.key['Date']
+        unix_time = row.key['local_time']
+        local_time = row.key['unix_time']
         int_T = row.key['Internal_C']
         ext_T = row.key['External_C']
         int_RH = row.key['Internal_RH']
         ext_RH = row.key['External_RH']
         freq = row.key['Frequency']
         amp = row.key['Amplitude']
-        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH, freq, amp])
+        values.append([unix_time, local_time, int_T, ext_T, int_RH, ext_RH, freq, amp])
       except Exception as error:
         pass
-    print('--> ' + str(len(values)))
     
-    ### Sort into TSV File
-    print('\n[Writing Sorted Values to File]')
+    ### Open Files
+    print('\n[Opening File]')
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
     frequency = open('static/frequency.tsv', 'w')
     amplitude = open('static/amplitude.tsv', 'w')
+
+    ### Headers
+    print('--> Writing Headers')
     temperature.write('date\tInternal\tExternal\n')
     humidity.write('date\tInternal\tExternal\n')
     frequency.write('date\tInternal\n')
     amplitude.write('date\tInternal\n')
+
+    ### Sort Values
+    print('--> Logging %d data-points' % len(values))
+    errors = 0
     for sample in sorted(values):
       try:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
@@ -182,7 +212,9 @@ class HiveMind:
         frequency.write(str(sample[1]) + '\t' + str(sample[6]) + '\n')
         amplitude.write(str(sample[1]) + '\t' + str(sample[7]) + '\n')
       except Exception as error:
+        errors += 1
         pass
+    print('--> %d errors encountered' % errors)
         
   ## Render Index
   @cherrypy.expose
@@ -202,5 +234,9 @@ if __name__ == '__main__':
   root = HiveMind()
   currdir = os.path.dirname(os.path.abspath(__file__))
   cherrypy.server.socket_host = '0.0.0.0'
-  conf = {'/static': {'tools.staticdir.on':True, 'tools.staticdir.dir':os.path.join(currdir,'static')}}
+  conf = {
+    '/static': {'tools.staticdir.on':True, 'tools.staticdir.dir':os.path.join(currdir,'static')},
+    '/favicon': {'tools.staticfile.on':True, 'tools.staticfile.filename':os.path.join(currdir,'static/favicon.ico')}
+    }
+  print('\n[Starting CherryPy Server]')
   cherrypy.quickstart(root, '/', config=conf)
