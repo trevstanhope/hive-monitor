@@ -177,8 +177,8 @@ class HiveMind:
     values = [] # will fill with data points
     for row in matches:
       try:
-        unix_time = row.key['local_time']
-        local_time = row.key['unix_time']
+        local_time = row.key['local_time']
+        unix_time = row.key['unix_time']
         int_T = row.key['Internal_C']
         ext_T = row.key['External_C']
         int_RH = row.key['Internal_RH']
@@ -210,14 +210,14 @@ class HiveMind:
     print('--> Humidity: ' + str(humidity_headers))
     print('--> Amplitude: ' + str(amplitude_headers))
     print('--> Frequency: ' + str(frequency_headers))
-    temperature.write(str(temperature_headers))
-    humidity.write(str(humidity_headers))
-    frequency.write(str(frequency_headers))
-    amplitude.write(str(amplitude_headers))
+    temperature.write('\t'.join(temperature_headers) + '\n')
+    humidity.write('\t'.join(humidity_headers) + '\n')
+    frequency.write('\t'.join(frequency_headers) + '\n')
+    amplitude.write('\t'.join(amplitude_headers) + '\n')
 
     ### Sort Values
     print('\n[Sorting Data]')
-    print('--> Logging %d data-points' % len(values))
+    print('--> Sorting %d data-points' % len(values))
     errors = 0
     for sample in sorted(values):
       try:
@@ -229,10 +229,6 @@ class HiveMind:
         errors += 1
         pass
     print('--> %d errors encountered' % errors)
-    temperature.close()
-    humidity.close()
-    frequency.close()
-    amplitude.close()
         
   ## Render Index
   @cherrypy.expose
@@ -255,6 +251,6 @@ if __name__ == '__main__':
   conf = {
     '/static': {'tools.staticdir.on':True, 'tools.staticdir.dir':os.path.join(currdir,'static')},
     '/favicon': {'tools.staticfile.on':True, 'tools.staticfile.filename':os.path.join(currdir,'static/favicon.ico')}
-    }
+   }
   print('\n[Starting CherryPy Server]')
   cherrypy.quickstart(root, '/', config=conf)
