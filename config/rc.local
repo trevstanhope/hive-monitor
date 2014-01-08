@@ -1,0 +1,4 @@
+#!/bin/sh -e
+# rc.local for HiveMind
+sudo python HiveMind.py
+exit 0
