@@ -12,7 +12,7 @@
 
 /* --- Pins --- */
 #define DHT_INTERNAL_PIN A0
-#define DHT_EXTERNAL_PIN A1
+#define DHT_EXTERNAL_PIN A2
 
 /* --- Values --- */
 #define DHT_TYPE DHT22

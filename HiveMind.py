@@ -159,7 +159,7 @@ class HiveMind:
           print('--> ' + str(error))
 
     ### Sound
-    with open('static/sound.tsv', 'w') as tsvfile:
+    with open('static/frequency.tsv', 'w') as tsvfile:
       print('[Querying Sound]')
       tsvfile.write('date\tfrequency\ttype\n')
       map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
