@@ -24,8 +24,8 @@ FORMAT = pyaudio.paInt16
 ARDUINO_DEV = '/dev/ttyS0'
 ARDUINO_BAUD = 9600
 ARDUINO_TIMEOUT = 1
-UPDATE_INTERVAL = 4 # seconds until next sensor update
-QUERY_INTERVAL = 16 # seconds until next graphic update
+UPDATE_INTERVAL = 10 # seconds until next sensor update
+QUERY_INTERVAL = 1 # seconds until next graphic update
 GRAPH_INTERVAL = 3600 # seconds in the past to display
 COUCHDB_DATABASE = 'hivemind'
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
@@ -173,6 +173,7 @@ class HiveMind:
     print('\n[Querying Recent Values]')
     map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
+    print('--> %d matches found' % len(matches))
     values = [] # will fill with data points
     for row in matches:
       try:
@@ -187,22 +188,35 @@ class HiveMind:
         values.append([unix_time, local_time, int_T, ext_T, int_RH, ext_RH, freq, amp])
       except Exception as error:
         pass
-    
+        
     ### Open Files
-    print('\n[Opening File]')
+    print('\n[Opening Files]')
+    print('--> Temperature: ' + 'static/temperature.tsv')
+    print('--> Humidity: ' + 'static/humidity.tsv')
+    print('--> Amplitude: ' + 'static/amplitude.tsv')
+    print('--> Frequency: ' + 'static/frequency.tsv')
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
     frequency = open('static/frequency.tsv', 'w')
     amplitude = open('static/amplitude.tsv', 'w')
 
     ### Headers
-    print('--> Writing Headers')
-    temperature.write('date\tInternal\tExternal\n')
-    humidity.write('date\tInternal\tExternal\n')
-    frequency.write('date\tInternal\n')
-    amplitude.write('date\tInternal\n')
+    print('\n[Writing Headers]')
+    temperature_headers = ['date','Internal','External']
+    humidity_headers = ['date','Internal','External']
+    frequency_headers = ['date','Internal']
+    amplitude_headers = ['date','Internal']
+    print('--> Temperature: ' + str(temperature_headers))
+    print('--> Humidity: ' + str(humidity_headers))
+    print('--> Amplitude: ' + str(amplitude_headers))
+    print('--> Frequency: ' + str(frequency_headers))
+    temperature.write(str(temperature_headers))
+    humidity.write(str(humidity_headers))
+    frequency.write(str(frequency_headers))
+    amplitude.write(str(amplitude_headers))
 
     ### Sort Values
+    print('\n[Sorting Data]')
     print('--> Logging %d data-points' % len(values))
     errors = 0
     for sample in sorted(values):
@@ -215,6 +229,10 @@ class HiveMind:
         errors += 1
         pass
     print('--> %d errors encountered' % errors)
+    temperature.close()
+    humidity.close()
+    frequency.close()
+    amplitude.close()
         
   ## Render Index
   @cherrypy.expose
