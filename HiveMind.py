@@ -86,6 +86,12 @@ class HiveMind:
       log = {}
       log['Date'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
       log['Time'] = time.time()
+      log['Internal_C'] = 0
+      log['External_C'] = 0
+      log['Internal_RH'] = 0
+      log['External_RH'] = 0
+      log['Frequency'] = 0
+      log['Amplitude'] = 0
     except Exception as error:
       print('--> ' + str(error))      
 
@@ -96,14 +102,12 @@ class HiveMind:
       json = ast.literal_eval(data)
       for key in json:
         if (json[key] > 100):
+            print(' --> Temp/Humidity cannot exceed 100')
 	        log[key] = 100 # limit to 100
         else:
 	        log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
-      log['Internal_C'] = 0
-      log['External_C'] = 0
-      log['Internal_RH'] = 0
-      log['External_RH'] = 0
+
       print('--> ' + str(error))
 
     ### Audio
@@ -120,14 +124,13 @@ class HiveMind:
         amplitude = np.sqrt(np.mean(np.abs(wave_fft)**2))
         log['Frequency'] = abs(freqs[1023]*RATE)
         if (amplitude == 0):
+          print('--> Amplitude cannot be infinite')
           log['Amplitude'] = 0
         else:
           log['Amplitude'] = 10*np.log10(amplitude)
       except ValueError as error:
         print('--> ' + str(error))
     except Exception as error:
-      log['Frequency'] = 0
-      log['Amplitude'] = 0
       print('--> ' + str(error))
 
     ### CouchDB
