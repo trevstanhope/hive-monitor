@@ -137,13 +137,13 @@ class HiveMind:
       values = []
       for row in matches:
         try:
+          unix_time = row.key['unix_time']
           date = row.key['time']
-          internal = str(row.key['external_temperature'])
-          external = str(row.key['internal_temperature'])
-          tsvfile.write(date + '\t' + internal + '\t' + external + '\n')
+          internal = row.key['external_temperature']
+          external = row.key['internal_temperature']
+          values.append([unix_time,date,internal,external])
         except Exception as error:
           print('--> ' + str(error))
-      tsvfile.write('date\tinternal\texternal\n')
       for sample in sorted(values):
         try:
           tsvfile.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')

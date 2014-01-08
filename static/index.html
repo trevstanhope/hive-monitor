@@ -160,7 +160,7 @@ d3.tsv("static/humidity.tsv", function(error, data) {
 
   data.forEach(function(d) {
     d.date = parseDate(d.date);
-  });
+  });1
 
   var cities = color.domain().map(function(name) {
     return {
