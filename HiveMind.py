@@ -131,9 +131,10 @@ class HiveMind:
     ### Temperature
     with open('static/temperature.tsv', 'w') as tsvfile:
       print('[Querying Temperature]')
-      tsvfile.write('date\tInternal\tExternal\n')
+      tsvfile.write('date\tinternal\texternal\n')
       map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
+      values = []
       for row in matches:
         try:
           date = row.key['time']
@@ -142,20 +143,33 @@ class HiveMind:
           tsvfile.write(date + '\t' + internal + '\t' + external + '\n')
         except Exception as error:
           print('--> ' + str(error))
+      tsvfile.write('date\tinternal\texternal\n')
+      for sample in sorted(values):
+        try:
+          tsvfile.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
+        except Exception as error:
+          print('--> ' + str(error))
           
     ### Humidity
     with open('static/humidity.tsv', 'w') as tsvfile:
       print('[Querying Humidity]')
-      tsvfile.write('date\tInternal\tExternal\n')
+      tsvfile.write('date\tinternal\texternal\n')
       map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
+      values = []
       for row in matches:
         try:
+          unix_time = row.key['unix_time']
           date = row.key['time']
-          internal = str(row.key['external_humidity'])
-          external = str(row.key['internal_humidity'])
-          tsvfile.write(date + '\t' + internal + '\t' + external + '\n')
-        except Exception:
+          internal = row.key['external_humidity']
+          external = row.key['internal_humidity']
+          values.append([unix_time,date,internal,external])
+        except Exception as error:
+          print('--> ' + str(error))
+      for sample in sorted(values):
+        try:
+          tsvfile.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
+        except Exception as error:
           print('--> ' + str(error))
 
     ### Sound
