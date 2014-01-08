@@ -102,8 +102,8 @@ class HiveMind:
       json = ast.literal_eval(data)
       for key in json:
         if (json[key] > 100):
-            print(' --> Temp/Humidity cannot exceed 100')
-	        log[key] = 100 # limit to 100
+          print(' --> Temp/Humidity cannot exceed 100')
+	      log[key] = 100 # limit to 100
         else:
 	        log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
