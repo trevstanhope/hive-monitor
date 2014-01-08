@@ -130,6 +130,7 @@ class HiveMind:
 
     ### Temperature
     with open('static/temperature.tsv', 'w') as tsvfile:
+      print('[Querying Temperature]')
       tsvfile.write('date\tInternal\tExternal\n')
       map_nodes = "function(doc) { if (doc) emit(doc); }"
       matches = self.couch.query(map_nodes)
@@ -145,6 +146,7 @@ class HiveMind:
           
     ### Humidity
     with open('static/humidity.tsv', 'w') as tsvfile:
+      print('[Querying Humidity]')
       tsvfile.write('date\tInternal\tExternal\n')
       map_nodes = "function(doc) { if (doc) emit(doc); }"
       matches = self.couch.query(map_nodes)
@@ -159,6 +161,7 @@ class HiveMind:
 
     ### Sound
     with open('static/sound.tsv', 'w') as tsvfile:
+      print('[Querying Sound]')
       tsvfile.write('date\tFrequency\tAmplitude\n')
       map_nodes = "function(doc) { if (doc) emit(doc); }"
       matches = self.couch.query(map_nodes)
@@ -172,7 +175,12 @@ class HiveMind:
           pass
       
     ### HTML
-    page = open('static/index.html').read()
+    try:
+      print('[Loading Index]')
+      page = open('static/index.html').read()
+    except Exception as error:
+      print('--> ' + str(error))
+      page = ''
     return page
     
 # Main
