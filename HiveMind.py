@@ -23,6 +23,7 @@ CHUNK = 1024
 FORMAT = pyaudio.paInt16
 ARDUINO_DEV = '/dev/ttyS0'
 ARDUINO_BAUD = 9600
+ARDUINO_TIMEOUT = 1
 UPDATE_INTERVAL = 1 # seconds until next sensor update
 QUERY_INTERVAL = 5 # seconds until next graphic update
 GRAPH_INTERVAL = 86400 # seconds in the past to display
@@ -51,7 +52,7 @@ class HiveMind:
     ### Setup Arduino
     try:
       print('[Initializing Arduino]')
-      self.arduino = serial.Serial(ARDUINO_DEV,ARDUINO_BAUD)
+      self.arduino = serial.Serial(ARDUINO_DEV,ARDUINO_BAUD,timeout=ARDUINO_TIMEOUT)
     except Exception as error:
       print('--> ' + str(error))
       
@@ -99,6 +100,10 @@ class HiveMind:
         else:
 	        log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
+      log['Internal_C'] = 0
+      log['External_C'] = 0
+      log['Internal_RH'] = 0
+      log['External_RH'] = 0
       print('--> ' + str(error))
 
     ### Audio
@@ -114,10 +119,15 @@ class HiveMind:
         freqs = wave_freqs[np.argsort(np.abs(wave_fft)**2)]
         amplitude = np.sqrt(np.mean(np.abs(wave_fft)**2))
         log['Frequency'] = abs(freqs[1023]*RATE)
-        log['Amplitude'] = 10*np.log10(amplitude)
+        if (amplitude == 0):
+          log['Amplitude'] = 0
+        else:
+          log['Amplitude'] = 10*np.log10(amplitude)
       except ValueError as error:
         print('--> ' + str(error))
     except Exception as error:
+      log['Frequency'] = 0
+      log['Amplitude'] = 0
       print('--> ' + str(error))
 
     ### CouchDB
@@ -150,6 +160,7 @@ class HiveMind:
         values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH, freq, amp])
       except Exception as error:
         pass
+    print('--> ' + str(len(values)))
     
     ### Sort into TSV File
     print('[Writing Sorted Values to File]')
