@@ -97,7 +97,7 @@ class HiveMind:
 
     ### Temp/Humidity
     try:
-      print('[Reading Arduino Serial]')
+      print('\n[Reading Arduino Serial]')
       data = self.arduino.readline()
       json = ast.literal_eval(data)
       for key in json:
@@ -107,12 +107,12 @@ class HiveMind:
         else:
 	        log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
-
       print('--> ' + str(error))
+      print('--> Values default to 0')
 
     ### Audio
     try:
-      print('[Capturing Audio]')
+      print('\n[Capturing Audio]')
       self.stream.start_stream()
       data = self.stream.read(CHUNK)
       self.stream.stop_stream()
@@ -135,7 +135,7 @@ class HiveMind:
 
     ### CouchDB
     try:
-      print('[Writing Log to CouchDB]')
+      print('\n[Writing Log to CouchDB]')
       for key in log:
         print('--> ' + key + '\t:\t' + str(log[key]))
       self.couch.save(log)
@@ -146,7 +146,7 @@ class HiveMind:
   def query(self):
     
     ### Query
-    print('[Querying Recent Values]')
+    print('\n[Querying Recent Values]')
     map_nodes = "function(doc) { if (doc.Time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
     values = []
@@ -166,7 +166,7 @@ class HiveMind:
     print('--> ' + str(len(values)))
     
     ### Sort into TSV File
-    print('[Writing Sorted Values to File]')
+    print('\n[Writing Sorted Values to File]')
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
     frequency = open('static/frequency.tsv', 'w')
@@ -190,7 +190,7 @@ class HiveMind:
       
     ### HTML
     try:
-      print('[Loading Index]')
+      print('\n[Loading Index]')
       page = open('static/index.html').read()
     except Exception as error:
       print('--> ' + str(error))
