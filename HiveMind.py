@@ -155,7 +155,9 @@ class HiveMind:
         ext_RH = row.key['External_RH']
         date = row.key['Date']
         unix_time = row.key['Time']
-        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH])
+        freq = row.key['Frequency']
+        amp = row.key['Amplitude']
+        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH, freq, amp])
       except Exception as error:
         pass
     
@@ -163,12 +165,15 @@ class HiveMind:
     print('[Writing Sorted Values to File]')
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
-    temperature.write('date\tinternal\texternal\n')
-    humidity.write('date\tinternal\texternal\n')
+    sound = open('static/sound.tsv', 'w')
+    temperature.write('date\tInternal\tExternal\n')
+    humidity.write('date\tInternal\tExternal\n')
+    sound.write('date\tFrequency (Hz)\tAmplitude (dB)\n')
     for sample in sorted(values):
       try:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
         humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
+        sound.write(str(sample[1]) + '\t' + str(sample[6]) + '\t' + str(sample[7]) + '\n')
       except Exception as error:
         pass
         
