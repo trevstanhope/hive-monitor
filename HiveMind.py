@@ -174,7 +174,7 @@ class HiveMind:
 
     ### Sound
     with open('static/frequency.tsv', 'w') as tsvfile:
-      print('[Querying Sound]')
+      print('[Querying Frequency]')
       tsvfile.write('date\tfrequency\ttype\n')
       map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
       matches = self.couch.query(map_nodes)
