@@ -132,10 +132,6 @@ class HiveMind:
   def index(self):
 
     ### Query
-    temperature = open('static/temperature.tsv', 'w')
-    humidity = open('static/humidity.tsv', 'w')
-    temperature.write('date\tinternal\texternal\n')
-    humidity.write('date\tinternal\texternal\n')
     map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
     values = []
@@ -150,10 +146,17 @@ class HiveMind:
         values.append([unix_time,date,int_T,ext_T,int_RH,ext_RH])
       except Exception as error:
         print('--> ' + str(error))
+    
+    ### Sort to File
+    print('[Writing Sorted Values to File]')
+    temperature = open('static/temperature.tsv', 'w')
+    humidity = open('static/humidity.tsv', 'w')
+    temperature.write('date\tinternal\texternal\n')
+    humidity.write('date\tinternal\texternal\n')
     for sample in sorted(values):
       try:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
-	humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
+        humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
       except Exception as error:
         print('--> ' + str(error))
       
