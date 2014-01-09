@@ -38,16 +38,6 @@ class HiveMind:
 
   ## Initialization
   def __init__(self):
-  
-    ### Configuration
-    print(CHANNELS)
-    print(RATE)
-    print(CHUNK)
-    print(ARDUINO_DEV)
-    print(ARDUINO_BAUD)
-    print(UPDATE_INTERVAL)
-    print(QUERY_INTERVAL)
-    print(GRAPH_INTERVAL)
     
     ### Monitors
     try:
@@ -170,7 +160,6 @@ class HiveMind:
     humidity.write('date\tInternal\tExternal\n')
     sound.write('date\tFrequency (Hz)\tAmplitude (dB)\n')
     for sample in sorted(values):
-      print sample
       try:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
         humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
