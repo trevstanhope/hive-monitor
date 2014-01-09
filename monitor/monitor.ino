@@ -37,10 +37,10 @@ char int_RH[CHARS];
 char ext_T[CHARS];
 char ext_RH[CHARS];
 char output[BUFFER];
-char int_T_key[] = "internal_temperature";
-char ext_T_key[] = "external_temperature";
-char int_RH_key[] = "internal_humidity";
-char ext_RH_key[] = "external_humidity";
+char int_T_key[] = "int_T";
+char ext_T_key[] = "ext_T";
+char int_RH_key[] = "int_RH";
+char ext_RH_key[] = "ext_RH";
 
 /* --- Setup --- */
 void setup() {
@@ -61,7 +61,7 @@ void loop() {
   dtostrf(get_int_T(), DIGITS, PRECISION, int_T); 
   dtostrf(get_ext_T(), DIGITS, PRECISION, ext_T);
   dtostrf(get_int_RH(), DIGITS, PRECISION, int_RH);
-  dtostrf(get_ext_T(), DIGITS, PRECISION, ext_RH);
+  dtostrf(get_ext_RH(), DIGITS, PRECISION, ext_RH);
   sprintf(output, "{'%s':%s, '%s':%s, '%s':%s, '%s':%s}", int_T_key, int_T, ext_T_key, ext_T, int_RH_key,int_RH, ext_RH_key, ext_RH);
   
   // Send to RaspberryPi

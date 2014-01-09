@@ -23,8 +23,8 @@ CHUNK = 1024
 FORMAT = pyaudio.paInt16
 ARDUINO_DEV = '/dev/ttyACM0'
 ARDUINO_BAUD = 9600
-UPDATE_INTERVAL = 5 # seconds until next sensor update
-QUERY_INTERVAL = 15 # seconds until next graphic update
+UPDATE_INTERVAL = 1 # seconds until next sensor update
+QUERY_INTERVAL = 5 # seconds until next graphic update
 GRAPH_INTERVAL = 86400 # seconds in the past to display
 COUCHDB_DATABASE = 'hivemind'
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
@@ -38,7 +38,17 @@ class HiveMind:
 
   ## Initialization
   def __init__(self):
-
+  
+    ### Configuration
+    print(CHANNELS)
+    print(RATE)
+    print(CHUNK)
+    print(ARDUINO_DEV)
+    print(ARDUINO_BAUD)
+    print(UPDATE_INTERVAL)
+    print(QUERY_INTERVAL)
+    print(GRAPH_INTERVAL)
+    
     ### Monitors
     try:
       print('[Initializing Monitors]')
@@ -94,10 +104,10 @@ class HiveMind:
       data = self.arduino.readline()
       json = ast.literal_eval(data)
       for key in json:
-	if (json[key] > 100):
-	  log[key] = 100 # limit to 100
+        if (json[key] > 100):
+	        log[key] = 100 # limit to 100
         else:
-	  log[key] = json[key] # store all items in arduino JSON to log
+	        log[key] = json[key] # store all items in arduino JSON to log
     except Exception as error:
       print('--> ' + str(error))
 
@@ -123,12 +133,11 @@ class HiveMind:
     ### CouchDB
     try:
       print('[Writing Log to CouchDB]')
+      for key in log:
+        print('--> ' + key + '\t:\t' + str(log[key]))
       self.couch.save(log)
     except Exception as error:
-      print('--> ' + str(error))
-    for key in log:
-      print('--> ' + key + ': ' + str(log[key]))
-  
+      print('--> ' + str(error))  
   
   ## Query Updated Data
   def query(self):
@@ -139,15 +148,9 @@ class HiveMind:
     values = []
     for row in matches:
       try:
-        unix_time = row.key['unix_time']
-        date = row.key['time']
-        int_T = row.key['internal_temperature']
-        ext_T = row.key['external_temperature']
-        int_RH = row.key['internal_humidity']
-        ext_RH = row.key['external_humidity']
-        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH])
+        values.append([row.key['unix_time'], row.key['time'], row.key['int_T'], row.key['ext_T'], row.key['int_RH'], row.key['ext_RH']])
       except Exception as error:
-        print('--> ' + str(error))
+        pass
     
     ### Sort to File
     print('[Writing Sorted Values to File]')
@@ -160,7 +163,7 @@ class HiveMind:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
         humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
       except Exception as error:
-        print('--> ' + str(error))
+        pass
         
   ## Render Index
   @cherrypy.expose
