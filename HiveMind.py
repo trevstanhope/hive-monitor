@@ -131,66 +131,6 @@ class HiveMind:
   @cherrypy.expose
   def index(self):
 
-<<<<<<< HEAD
-    ### Temperature
-    with open('static/temperature.tsv', 'w') as tsvfile:
-      print('[Querying Temperature]')
-      tsvfile.write('date\tinternal\texternal\n')
-      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
-      matches = self.couch.query(map_nodes)
-      values = []
-      for row in matches:
-        try:
-          unix_time = row.key['unix_time']
-          date = row.key['time']
-          internal = row.key['external_temperature']
-          external = row.key['internal_temperature']
-          values.append([unix_time,date,internal,external])
-        except Exception as error:
-          print('--> ' + str(error))
-      for sample in sorted(values):
-        try:
-          tsvfile.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
-        except Exception as error:
-          print('--> ' + str(error))
-          
-    ### Humidity
-    with open('static/humidity.tsv', 'w') as tsvfile:
-      print('[Querying Humidity]')
-      tsvfile.write('date\tinternal\texternal\n')
-      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
-      matches = self.couch.query(map_nodes)
-      values = []
-      for row in matches:
-        try:
-          unix_time = row.key['unix_time']
-          date = row.key['time']
-          internal = row.key['external_humidity']
-          external = row.key['internal_humidity']
-          values.append([unix_time,date,internal,external])
-        except Exception as error:
-          print('--> ' + str(error))
-      for sample in sorted(values):
-        try:
-          tsvfile.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
-        except Exception as error:
-          print('--> ' + str(error))
-
-    ### Sound
-    with open('static/frequency.tsv', 'w') as tsvfile:
-      print('[Querying Frequency]')
-      tsvfile.write('date\tfrequency\ttype\n')
-      map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
-      matches = self.couch.query(map_nodes)
-      for row in matches:
-        try:
-          date = row.key['time']
-          frequency = str(row.key['frequency'])
-          mode = 'Major Frequency'
-          tsvfile.write(date + '\t' + frequency + '\t' + mode + '\n')
-        except Exception:
-          print('--> ' + str(error))
-=======
     ### Query
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
@@ -216,7 +156,6 @@ class HiveMind:
 	humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
       except Exception as error:
         print('--> ' + str(error))
->>>>>>> 56afe034388c19ba282e83cfc40b388d0526587b
       
     ### HTML
     try:
