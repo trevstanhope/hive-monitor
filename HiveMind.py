@@ -144,7 +144,7 @@ class HiveMind:
     
     ### Query
     print('[Querying Recent Values]')
-    map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
+    map_nodes = "function(doc) { if (doc.Time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
     values = []
     for row in matches:
