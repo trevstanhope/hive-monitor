@@ -141,11 +141,11 @@ class HiveMind:
       try:
         unix_time = row.key['unix_time']
         date = row.key['time']
-        int_T = row.key['external_temperature']
-        ext_T = row.key['internal_temperature']
-        int_RH = row.key['external_humidity']
-        ext_RH = row.key['internal_humidity']
-        values.append([unix_time,date,int_T,ext_T,int_RH,ext_RH])
+        int_T = row.key['internal_temperature']
+        ext_T = row.key['external_temperature']
+        int_RH = row.key['internal_humidity']
+        ext_RH = row.key['external_humidity']
+        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH])
       except Exception as error:
         print('--> ' + str(error))
     
