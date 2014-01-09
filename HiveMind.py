@@ -93,8 +93,8 @@ class HiveMind:
     try:
       print('[Creating New Log Entry]')
       log = {}
-      log['time'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-      log['unix_time'] = time.time()
+      log['Date'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+      log['Time'] = time.time()
     except Exception as error:
       print('--> ' + str(error))      
 
@@ -123,8 +123,8 @@ class HiveMind:
         wave_freqs = np.fft.fftfreq(len(wave_fft))
         freqs = wave_freqs[np.argsort(np.abs(wave_fft)**2)]
         amplitude = np.sqrt(np.mean(np.abs(wave_fft)**2))
-        log['frequency'] = abs(freqs[1023]*RATE)
-        log['amplitude'] = 10*np.log10(amplitude)
+        log['Frequency'] = abs(freqs[1023]*RATE)
+        log['Amplitude'] = 10*np.log10(amplitude)
       except ValueError as error:
         print('--> ' + str(error))
     except Exception as error:
@@ -153,7 +153,9 @@ class HiveMind:
         ext_T = row.key['External_C']
         int_RH = row.key['Internal_RH']
         ext_RH = row.key['External_RH']
-        values.append([row.key['unix_time'], row.key['time'], int_T, ext_T, int_RH, ext_RH])
+        date = row.key['Date']
+        unix_time = row.key['Time']
+        values.append([unix_time, date, int_T, ext_T, int_RH, ext_RH])
       except Exception as error:
         pass
     
