@@ -21,7 +21,7 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
-ARDUINO_DEV = '/dev/ttyACM0'
+ARDUINO_DEV = '/dev/ttyS0'
 ARDUINO_BAUD = 9600
 UPDATE_INTERVAL = 1 # seconds until next sensor update
 QUERY_INTERVAL = 5 # seconds until next graphic update
@@ -143,12 +143,17 @@ class HiveMind:
   def query(self):
     
     ### Query
+    print('[Querying Recent Values]')
     map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
     values = []
     for row in matches:
       try:
-        values.append([row.key['unix_time'], row.key['time'], row.key['int_T'], row.key['ext_T'], row.key['int_RH'], row.key['ext_RH']])
+        int_T = row.key['Internal_C']
+        ext_T = row.key['External_C']
+        int_RH = row.key['Internal_RH']
+        ext_RH = row.key['External_RH']
+        values.append([row.key['unix_time'], row.key['time'], int_T, ext_T, int_RH, ext_RH])
       except Exception as error:
         pass
     
