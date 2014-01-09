@@ -23,7 +23,8 @@ CHUNK = 1024
 FORMAT = pyaudio.paInt16
 ARDUINO_DEV = '/dev/ttyACM0'
 ARDUINO_BAUD = 9600
-UPDATE_INTERVAL = 15 # seconds until next graphic update
+UPDATE_INTERVAL = 15 # seconds until next sensor update
+QUERY_INTERVAL = 60 # seconds until next graphic update
 GRAPH_INTERVAL = 86400 # seconds in the past to display
 COUCHDB_DATABASE = 'hivemind'
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
@@ -43,8 +44,9 @@ class HiveMind:
       print('[Initializing Monitors]')
       self.start_time = time.time()
       Monitor(cherrypy.engine, self.update, frequency=UPDATE_INTERVAL).subscribe()
+      Monitor(cherrypy.engine, self.query, frequency=QUERY_INTERVAL).subscribe()
     except Exception as error:
-      Monitor(cherrypy.engine, self.update, frequency=UPDATE_INTERVAL).subscribe()
+      print('--> ' + str(error))
     
     ### Setup Arduino
     try:
@@ -127,10 +129,10 @@ class HiveMind:
     for key in log:
       print('--> ' + key + ': ' + str(log[key]))
   
-  ## Render Index
-  @cherrypy.expose
-  def index(self):
-
+  
+  ## Query Updated Data
+  def query(self):
+    
     ### Query
     map_nodes = "function(doc) { if (doc.unix_time >= " + str(time.time() - GRAPH_INTERVAL) + ") emit(doc); }"
     matches = self.couch.query(map_nodes)
@@ -159,6 +161,10 @@ class HiveMind:
         humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
       except Exception as error:
         print('--> ' + str(error))
+        
+  ## Render Index
+  @cherrypy.expose
+  def index(self):
       
     ### HTML
     try:
