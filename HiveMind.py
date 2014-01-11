@@ -151,19 +151,22 @@ class HiveMind:
       except Exception as error:
         pass
     
-    ### Sort to File
+    ### Sort into TSV File
     print('[Writing Sorted Values to File]')
     temperature = open('static/temperature.tsv', 'w')
     humidity = open('static/humidity.tsv', 'w')
-    sound = open('static/sound.tsv', 'w')
+    frequency = open('static/frequency.tsv', 'w')
+    amplitude = open('static/amplitude.tsv', 'w')
     temperature.write('date\tInternal\tExternal\n')
     humidity.write('date\tInternal\tExternal\n')
-    sound.write('date\tFrequency (Hz)\tAmplitude (dB)\n')
+    frequency.write('date\tInternal\n')
+    amplitude.write('date\tInternal\n')
     for sample in sorted(values):
       try:
         temperature.write(str(sample[1]) + '\t' + str(sample[2]) + '\t' + str(sample[3]) + '\n')
         humidity.write(str(sample[1]) + '\t' + str(sample[4]) + '\t' + str(sample[5]) + '\n')
-        sound.write(str(sample[1]) + '\t' + str(sample[6]) + '\t' + str(sample[7]) + '\n')
+        frequency.write(str(sample[1]) + '\t' + str(sample[6]) + '\n')
+        amplitude.write(str(sample[1]) + '\t' + str(sample[7]) + '\n')
       except Exception as error:
         pass
         

@@ -12,7 +12,8 @@
 
 /* --- Pins --- */
 #define DHT_INTERNAL_PIN A0
-#define DHT_EXTERNAL_PIN A2
+#define DHT_EXTERNAL_PIN A1
+#define RELAY_PIN A5
 
 /* --- Values --- */
 #define DHT_TYPE DHT22
@@ -22,6 +23,8 @@
 #define DIGITS 4
 #define PRECISION 2
 #define INTERVAL 1000
+#define UPTIME 5
+#define DOWNTIME 10
 
 /* --- Functions --- */
 float get_int_T(void);
@@ -37,10 +40,12 @@ char int_RH[CHARS];
 char ext_T[CHARS];
 char ext_RH[CHARS];
 char output[BUFFER];
-char int_T_key[] = "int_T";
-char ext_T_key[] = "ext_T";
-char int_RH_key[] = "int_RH";
-char ext_RH_key[] = "ext_RH";
+char int_T_key[] = "Internal_C";
+char ext_T_key[] = "External_C";
+char int_RH_key[] = "Internal_RH";
+char ext_RH_key[] = "External_RH";
+int counter = 0;
+boolean rpi_on = true;
 
 /* --- Setup --- */
 void setup() {
@@ -51,6 +56,10 @@ void setup() {
   // Setup Sensors
   internal.begin();
   external.begin();
+  
+  // Setup Relay
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
   
 }
 
@@ -68,6 +77,28 @@ void loop() {
   Serial.println(output);
   delay(INTERVAL);
   Serial.flush();
+  
+  // Turn on/off RaspberryPi
+  if (rpi_on) {
+    if (counter > UPTIME) {
+      digitalWrite(RELAY_PIN, HIGH);
+      counter = 0;
+      rpi_on = false;
+    }
+    else {
+      counter++;
+    }
+  }
+  else {
+    if (counter > DOWNTIME) {
+      digitalWrite(RELAY_PIN, LOW);
+      counter = 0;
+      rpi_on = true;
+    }
+    else {
+      counter++;
+    }
+  }
  
 }
 
