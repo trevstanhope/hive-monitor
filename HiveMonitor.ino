@@ -27,8 +27,8 @@
 #define DIGITS 4
 #define PRECISION 2
 #define INTERVAL 1
-#define UPTIME 600
-#define DOWNTIME 3000
+#define UP_TIME 5
+#define DOWN_TIME 10
 
 /* --- Functions --- */
 float get_int_C(void);
@@ -39,9 +39,6 @@ float get_ext_RH(void);
 /* --- Objects --- */
 DHT internal(DHT_INTERNAL_PIN, DHT_TYPE);
 DHT external(DHT_EXTERNAL_PIN, DHT_TYPE);
-Sd2Card card;
-SdVolume volume;
-SdFile root;
 
 /* --- Strings --- */
 char int_C[CHARS];
@@ -52,8 +49,8 @@ char json[BUFFER];
 char csv[BUFFER];
 
 /* --- State --- */
-int counter = 0; // seconds on
-boolean on = true; // start on
+int rpi_timer = 0; // seconds on
+boolean rpi_on = true; // start on
 
 /* --- Setup --- */
 void setup() {
@@ -67,13 +64,9 @@ void setup() {
   
   // Setup SD
   pinMode(SD_PIN, OUTPUT);
-  while (!card.init(SPI_HALF_SPEED, SD_PIN)) {
-    continue; // connection failed
-  }
-  if (!volume.init(card)) {
+  if (!SD.begin(SD_PIN)) {
     return;
   }
-  root.openRoot(volume);
   
   // Setup Sensors
   internal.begin();
@@ -89,37 +82,34 @@ void loop() {
   dtostrf(get_int_RH(), DIGITS, PRECISION, int_RH);
   dtostrf(get_int_C(), DIGITS, PRECISION, int_C);
   sprintf(json, "{'int_temp':%s, 'ext_temp':%s, 'int_humidity':%s, 'ext_humidity':%s}", int_C, ext_C, int_RH, ext_RH);
-  sprintf(csv, "%s, %s, %s, %s}", int_C, ext_C, int_RH, ext_RH);
+  sprintf(csv, "%s, %s, %s, %s", int_C, ext_C, int_RH, ext_RH);
 
-  // Log to file
+  // Log to CSV-file
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
-  dataFile.print(csv);
-  dataFile.close();
+  if (dataFile) {
+    dataFile.println(csv);
+    dataFile.close();
+  }
   
   // Send to RaspberryPi
   Serial.println(json);
   delay(1000*INTERVAL);
   Serial.flush();
   
-  // Set RaspberryPi State
-  if (on) {
-    if (counter <= UPTIME) {
-      counter += INTERVAL;
-    }
-    else {
-      counter = 0;
-      on = false;
-      digitalWrite(RPI_POWER_PIN, HIGH);
+  // Set RaspberryPi ON/OFF State
+  rpi_timer += INTERVAL;
+  if (rpi_on) {
+    if (rpi_timer > UP_TIME) {
+      rpi_timer = 0;
+      rpi_on = false;
+      digitalWrite(RPI_POWER_PIN, LOW);
     }
   }
   else {
-    if (counter <= DOWNTIME) {
-      counter += INTERVAL;
-    }
-    else {
-      counter = 0;
-      on = true;
-      digitalWrite(RPI_POWER_PIN, LOW);
+    if (rpi_timer > DOWN_TIME) {
+      rpi_timer = 0;
+      rpi_on = true;
+      digitalWrite(RPI_POWER_PIN, HIGH);
     }
   }
 }
