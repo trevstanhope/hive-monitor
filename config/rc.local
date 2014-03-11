@@ -1,5 +1,0 @@
-#!/bin/sh -e
-# rc.local for HiveMind
-cd /home/pi/HiveMind_Basic
-sudo python HiveMind_Basic.py
-exit 0

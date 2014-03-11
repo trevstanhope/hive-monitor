@@ -11,8 +11,8 @@
 #	make upload
 
 ARDUINO_DIR = /usr/share/arduino
-TARGET = HiveMind_Basic
+TARGET = HiveMonitor
 BOARD_TAG = alamode # for dev use 'uno'
 ARDUINO_PORT = /dev/ttyS0 # for dev use '/dev/ttyACM0'
-ARDUINO_LIBS = DHT SoftwareSerial stdio
+ARDUINO_LIBS = DHT SoftwareSerial stdio SD
 include /usr/share/arduino/Arduino.mk

@@ -1,4 +1,4 @@
-# Hivemind
+# HiveMonitor
 Wireless sensor node based on RaspberryPi and Arduino.
 HiveMind allows any amateur bee-keeper to monitor their hives in real-time.
 
