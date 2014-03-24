@@ -27,8 +27,8 @@
 #define DIGITS 4
 #define PRECISION 2
 #define INTERVAL 1
-#define UP_TIME 5 // when it will turn back on
-#define DOWN_TIME 10 // when it will turn off
+#define UP_TIME 10 // when it will turn back on
+#define DOWN_TIME 5 // when it will turn off
 #define WAIT_TIME 2 // time for RPi to close
 
 /* --- Functions --- */
@@ -56,8 +56,6 @@ char csv[BUFFER];
 
 /* --- State --- */
 int time = 0; // seconds on
-int a = 0;
-int b = 0;
 
 /* --- Setup --- */
 void setup() {
@@ -83,9 +81,6 @@ void setup() {
 /* --- Loop --- */
 void loop() {
   
-  // Start time
-  a = millis();
-  
   // Read all sensors always
   dtostrf(get_ext_RH(), DIGITS, PRECISION, ext_RH); 
   dtostrf(get_ext_C(), DIGITS, PRECISION, ext_C);
@@ -107,18 +102,13 @@ void loop() {
   sprintf(json, "{'int_temp':%s, 'ext_temp':%s, 'int_humidity':%s, 'ext_humidity':%s, 'voltage':%s, 'amperage':%s, 'relay':%d}", int_C, ext_C, int_RH, ext_RH, volts, amps, relay);
   Serial.println(json);
   delay(1000 * INTERVAL);
-  Serial.flush();
   
-  // End time
-  b = millis();
-  time = time + (b-a);
+  // Increment time
+  time++;
 }
 
 /* --- Get Relay State --- */
 // Keep on until UPTIME, then off until UPTIME+DOWNTIME, but WAIT wait until NODE is OFF
-// -1 is OFF
-// 0 is WAITING
-// 1 is ON
 int get_relay() {
   int val;
   if (time <= UP_TIME) {
