@@ -26,110 +26,103 @@
 #define BUFFER 128
 #define DIGITS 4
 #define PRECISION 2
-#define INTERVAL 1
+#define INTERVAL 1000
+#define BOOT_WAIT 1000
 #define UP_TIME 10 // when it will turn back on
-#define DOWN_TIME 5 // when it will turn off
-#define WAIT_TIME 2 // time for RPi to close
+#define DOWN_TIME 30 // when it will turn off
 
 /* --- Functions --- */
 float get_int_C(void);
 float get_int_RH(void);
 float get_ext_C(void);
 float get_ext_RH(void);
+float get_volts(void);
+float get_amps(void);
+int get_relay(void);
 
 /* --- Objects --- */
-DHT internal(DHT_INTERNAL_PIN, DHT_TYPE);
-DHT external(DHT_EXTERNAL_PIN, DHT_TYPE);
+DHT INT_DHT(DHT_INTERNAL_PIN, DHT_TYPE);
+DHT EXT_DHT(DHT_EXTERNAL_PIN, DHT_TYPE);
 
 /* --- Strings --- */
-char int_C[CHARS];
-char int_RH[CHARS];
-char ext_C[CHARS];
-char ext_RH[CHARS];
-char volts[CHARS];
-char amps[CHARS];
-char relay[CHARS];
+char INT_T[CHARS];
+char INT_H[CHARS];
+char EXT_T[CHARS];
+char EXT_H[CHARS];
+char VOLTS[CHARS];
+char AMPS[CHARS];
+char RELAY[CHARS];
 
 /* --- Line Buffers --- */
-char json[BUFFER];
-char csv[BUFFER];
+char JSON[BUFFER];
+char CSV[BUFFER];
+char COMMAND;
 
 /* --- State --- */
-int time = 0; // seconds on
+int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
-  
-  // Setup Serial
-  Serial.begin(BAUD);
-  
-  // Setup Relay
   pinMode(RPI_POWER_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, LOW); // start on
-  
-  // Setup SD
+  delay(BOOT_WAIT); // Serial cannot be on during RPi boot
+  Serial.begin(BAUD);
   pinMode(SD_PIN, OUTPUT);
   if (!SD.begin(SD_PIN)) {
     return;
   }
-  
-  // Setup Sensors
-  internal.begin();
-  external.begin();
+  INT_DHT.begin();
+  EXT_DHT.begin();
 }
 
 /* --- Loop --- */
 void loop() {
-  
-  // Read all sensors always
-  dtostrf(get_ext_RH(), DIGITS, PRECISION, ext_RH); 
-  dtostrf(get_ext_C(), DIGITS, PRECISION, ext_C);
-  dtostrf(get_int_RH(), DIGITS, PRECISION, int_RH);
-  dtostrf(get_int_C(), DIGITS, PRECISION, int_C);
-  dtostrf(get_volts(), DIGITS, PRECISION, volts);
-  dtostrf(get_amps(), DIGITS, PRECISION, amps);
-  dtostrf(get_relay(), DIGITS, PRECISION, relay);
-
-  // Always try to log everything to CSV-file
-  sprintf(csv, "%s, %s, %s, %s", int_C, ext_C, int_RH, ext_RH);;
-  File dataFile = SD.open("datalog.txt", FILE_WRITE);
-  if (dataFile) {
-    dataFile.println(csv);
-    dataFile.close();
+  set_relay();
+  dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_H); 
+  dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_T);
+  dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
+  dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
+  dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
+  dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
+  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s",TIME,INT_H,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
+  File datafile = SD.open("datalog.txt", FILE_WRITE);
+  if (datafile) {
+    datafile.println(CSV);
+    datafile.close();
   }
-  
-  // Always try to send over serial
-  sprintf(json, "{'int_temp':%s, 'ext_temp':%s, 'int_humidity':%s, 'ext_humidity':%s, 'voltage':%s, 'amperage':%s, 'relay':%d}", int_C, ext_C, int_RH, ext_RH, volts, amps, relay);
-  Serial.println(json);
-  delay(1000 * INTERVAL);
-  
-  // Increment time
-  time++;
+  if (Serial.available()) {
+    COMMAND = Serial.read();
+    sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}",TIME,INT_T,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
+    switch (COMMAND) {
+      default:
+        Serial.println(JSON);
+        break;
+    }
+  }
+  delay(INTERVAL);
 }
 
-/* --- Get Relay State --- */
-// Keep on until UPTIME, then off until UPTIME+DOWNTIME, but WAIT wait until NODE is OFF
-int get_relay() {
-  int val;
-  if (time <= UP_TIME) {
+/* --- Control Functions --- */
+// Set Relay --> Keep on until UPTIME, then off until UPTIME+DOWNTIME, but WAIT wait until NODE is OFF
+void set_relay(void) {
+  TIME++;
+  if (TIME <= UP_TIME) {
     digitalWrite(RPI_POWER_PIN, LOW);
-    val = 1;
-  } else if (time <= UP_TIME + WAIT_TIME) {
-    digitalWrite(RPI_POWER_PIN, LOW);
-    val = 0;
-  } else if (time <= UP_TIME + WAIT_TIME + DOWN_TIME) {
+  } else if (TIME <= DOWN_TIME) {
     digitalWrite(RPI_POWER_PIN, HIGH);
-    val = -1;
+    Serial.end();
   } else {
-    val = 1;
-    time = 0;
+    TIME = 0;
+    digitalWrite(RPI_POWER_PIN, LOW);
+    delay(BOOT_WAIT);
+    Serial.begin(BAUD);
   }
-  return val;
 }
 
-/* --- Get Internal Humidity --- */
-float get_int_RH() {
-  float val = internal.readHumidity();
+/* --- Sensor Functions --- */
+// Internal Humidity
+float get_int_humidity() {
+  float val = INT_DHT.readHumidity();
   if (isnan(val)) {
     return 0;
   }
@@ -138,9 +131,9 @@ float get_int_RH() {
   }
 }
 
-/* --- Get Internal Temperature --- */
-float get_int_C() {
-  float val = internal.readTemperature(); //  Serial.println(val);
+// Internal Temperature
+float get_int_temp() {
+  float val = INT_DHT.readTemperature(); //  Serial.println(val);
   if (isnan(val)) {
     return 0;
   }
@@ -149,9 +142,9 @@ float get_int_C() {
   }
 }
 
-/* --- Get External Humidity --- */
-float get_ext_RH() {
-  float val = external.readHumidity();
+// Get External Humidity
+float get_ext_humidity() {
+  float val = EXT_DHT.readHumidity();
   if (isnan(val)) {
     return 0;
   }
@@ -160,9 +153,9 @@ float get_ext_RH() {
   }
 }
 
-/* --- Get External Temperature --- */
-float get_ext_C() {
-  float val = external.readTemperature();
+// Get External Temperature
+float get_ext_temp() {
+  float val = EXT_DHT.readTemperature();
   if (isnan(val)) {
     return 0;
   }
@@ -171,7 +164,7 @@ float get_ext_C() {
   }
 }
 
-/* --- Get Amperage --- */
+// Amperage
 float get_amps() {
 //  float val = external.readTemperature();
 //  if (isnan(val)) {
@@ -183,7 +176,7 @@ float get_amps() {
   return 1;
 }
 
-/* --- Get Voltage --- */
+// Voltage
 float get_volts() {
 //  float val = external.readTemperature();
 //  if (isnan(val)) {
