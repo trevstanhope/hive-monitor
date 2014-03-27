@@ -20,7 +20,7 @@
 #define RPI_POWER_PIN A5
 
 /* --- Values --- */
-#define DHT_TYPE DHT11
+#define DHT_TYPE DHT22
 #define BAUD 9600
 #define CHARS 8
 #define BUFFER 128
@@ -28,6 +28,7 @@
 #define PRECISION 2
 #define INTERVAL 1000
 #define BOOT_WAIT 1000
+#define TIMEOUT 20
 #define UP_TIME 10 // when it will turn back on
 #define DOWN_TIME 30 // when it will turn off
 
@@ -67,6 +68,7 @@ void setup() {
   digitalWrite(RPI_POWER_PIN, LOW); // start on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
+  Serial.setTimeout(TIMEOUT);
   pinMode(SD_PIN, OUTPUT);
   if (!SD.begin(SD_PIN)) {
     return;
@@ -78,13 +80,13 @@ void setup() {
 /* --- Loop --- */
 void loop() {
   TIME++;
-  dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_H); 
-  dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_T);
+  dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
+  dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
   dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
   dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
   dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
   dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
-  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s",TIME,INT_H,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
+  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s",TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
   File datafile = SD.open("datalog.txt", FILE_WRITE);
   if (datafile) {
     datafile.println(CSV);
