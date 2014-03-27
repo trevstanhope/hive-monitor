@@ -39,7 +39,6 @@ float get_ext_temp(void);
 float get_ext_humidity(void);
 float get_volts(void);
 float get_amps(void);
-int get_relay(void);
 
 /* --- Objects --- */
 DHT INT_DHT(DHT_INTERNAL_PIN, DHT_TYPE);
@@ -52,7 +51,6 @@ char EXT_T[CHARS];
 char EXT_H[CHARS];
 char VOLTS[CHARS];
 char AMPS[CHARS];
-char RELAY[CHARS];
 
 /* --- Line Buffers --- */
 char JSON[BUFFER];
@@ -94,15 +92,8 @@ void loop() {
   }
   if (TIME <= UP_TIME) {
     digitalWrite(RPI_POWER_PIN, LOW);
-    if (Serial.available()) {
-      COMMAND = Serial.read();
-      sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
-      switch (COMMAND) {
-        default:
-          Serial.println(JSON);
-          break;
-      }
-    }
+    sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
+    Serial.println(JSON);
   }
   else if (TIME <= DOWN_TIME) {
     digitalWrite(RPI_POWER_PIN, HIGH);
