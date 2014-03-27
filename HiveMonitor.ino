@@ -32,10 +32,10 @@
 #define DOWN_TIME 30 // when it will turn off
 
 /* --- Functions --- */
-float get_int_C(void);
-float get_int_RH(void);
-float get_ext_C(void);
-float get_ext_RH(void);
+float get_int_temp(void);
+float get_int_humidity(void);
+float get_ext_temp(void);
+float get_ext_humidity(void);
 float get_volts(void);
 float get_amps(void);
 int get_relay(void);
