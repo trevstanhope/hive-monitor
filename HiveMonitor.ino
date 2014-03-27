@@ -86,7 +86,7 @@ void loop() {
   dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
   dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
   dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
-  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s",TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
+  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
   File datafile = SD.open("datalog.txt", FILE_WRITE);
   if (datafile) {
     datafile.println(CSV);
@@ -96,7 +96,7 @@ void loop() {
     digitalWrite(RPI_POWER_PIN, LOW);
     if (Serial.available()) {
       COMMAND = Serial.read();
-      sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}",TIME,INT_T,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
+      sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
       switch (COMMAND) {
         default:
           Serial.println(JSON);
