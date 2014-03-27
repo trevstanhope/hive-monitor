@@ -77,7 +77,7 @@ void setup() {
 
 /* --- Loop --- */
 void loop() {
-  set_relay();
+  TIME++;
   dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_H); 
   dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_T);
   dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
@@ -90,33 +90,29 @@ void loop() {
     datafile.println(CSV);
     datafile.close();
   }
-  if (Serial.available()) {
-    COMMAND = Serial.read();
-    sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}",TIME,INT_T,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
-    switch (COMMAND) {
-      default:
-        Serial.println(JSON);
-        break;
-    }
-  }
-  delay(INTERVAL);
-}
-
-/* --- Control Functions --- */
-// Set Relay --> Keep on until UPTIME, then off until UPTIME+DOWNTIME, but WAIT wait until NODE is OFF
-void set_relay(void) {
-  TIME++;
   if (TIME <= UP_TIME) {
     digitalWrite(RPI_POWER_PIN, LOW);
-  } else if (TIME <= DOWN_TIME) {
+    if (Serial.available()) {
+      COMMAND = Serial.read();
+      sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}",TIME,INT_T,EXT_T,INT_H,EXT_H,VOLTS,AMPS);
+      switch (COMMAND) {
+        default:
+          Serial.println(JSON);
+          break;
+      }
+    }
+  }
+  else if (TIME <= DOWN_TIME) {
     digitalWrite(RPI_POWER_PIN, HIGH);
     Serial.end();
-  } else {
+  }
+  else {
     TIME = 0;
     digitalWrite(RPI_POWER_PIN, LOW);
     delay(BOOT_WAIT);
     Serial.begin(BAUD);
   }
+  delay(INTERVAL);
 }
 
 /* --- Sensor Functions --- */
