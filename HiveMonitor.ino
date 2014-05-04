@@ -92,7 +92,7 @@ void loop() {
   }
   if (TIME <= UP_TIME) {
     digitalWrite(RPI_POWER_PIN, LOW);
-    sprintf(JSON, "{'time':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
+    sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
   }
   else if (TIME <= DOWN_TIME) {
