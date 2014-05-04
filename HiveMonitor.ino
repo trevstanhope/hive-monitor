@@ -30,7 +30,7 @@
 #define BOOT_WAIT 10000
 #define TIMEOUT 20
 #define UP_TIME 300 // when it will turn back on
-#define DOWN_TIME 1200 // when it will turn off
+#define DOWN_TIME 600 // when it will turn off
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -100,7 +100,7 @@ void loop() {
     Serial.end();
   }
   else {
-    TIME = 0;
+    TIME = 0; // reset timer
     digitalWrite(RPI_POWER_PIN, LOW);
     delay(BOOT_WAIT);
     Serial.begin(BAUD);
