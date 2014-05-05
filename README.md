@@ -11,6 +11,11 @@ To install dependencies and libraries, run the install script.
     chmod +x install.sh
     ./install.sh
 
+## Reloading Code
+First, stop any serial communication by killing the python script:
+
+    $ sudo pkill python
+    
 Then, clean the directory:
 
     $ make clean
