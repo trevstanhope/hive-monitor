@@ -27,10 +27,10 @@
 #define DIGITS 4
 #define PRECISION 2
 #define INTERVAL 1000
-#define BOOT_WAIT 10000
+#define BOOT_WAIT 60000
 #define TIMEOUT 20
-#define UP_TIME 300 // when it will turn back on
-#define DOWN_TIME 600 // when it will turn off
+#define UP_TIME 300 // seconds until when it will turn off
+#define DOWN_TIME 600 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
