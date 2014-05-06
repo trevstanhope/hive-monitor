@@ -23,11 +23,12 @@
 #define BUFFER 128
 #define DIGITS 4
 #define PRECISION 2
-#define INTERVAL 1000
+#define ON_INTERVAL 500
+#define OFF_INTERVAL 1000
 #define BOOT_WAIT 60000
 #define TIMEOUT 20
 #define UP_TIME 300 // seconds until when it will turn off
-#define DOWN_TIME 600 // seconds until when it will back turn on
+#define DOWN_TIME 1200 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -91,10 +92,12 @@ void loop() {
     digitalWrite(RPI_POWER_PIN, HIGH);
     sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
+    delay(ON_INTERVAL);
   }
   else if (TIME <= DOWN_TIME) {
     digitalWrite(RPI_POWER_PIN, LOW);
     Serial.end();
+    delay(OFF_INTERVAL);
   }
   else {
     TIME = 0; // reset timer
@@ -102,7 +105,6 @@ void loop() {
     delay(BOOT_WAIT);
     Serial.begin(BAUD);
   }
-  delay(INTERVAL);
 }
 
 /* --- Sensor Functions --- */
