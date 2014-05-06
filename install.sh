@@ -17,10 +17,5 @@ sudo chown root /usr/bin/avrdude /usr/share/arduino/hardware/tools/avrdude
 sudo chgrp root /usr/bin/avrdude /usr/share/arduino/hardware/tools/avrdude
 sudo chmod a+s /usr/bin/avrdude /usr/share/arduino/hardware/tools/avrdude
 
-## Compile to Arduino
-make clean
-make
-make upload
-
 ## Reboot
 sudo reboot

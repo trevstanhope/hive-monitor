@@ -63,7 +63,7 @@ int TIME = 0; // seconds on
 /* --- Setup --- */
 void setup() {
   pinMode(RPI_POWER_PIN, OUTPUT);
-  digitalWrite(RPI_POWER_PIN, HIGH); // start on
+  digitalWrite(RPI_POWER_PIN, LOW); // start on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
@@ -91,17 +91,17 @@ void loop() {
     datafile.close();
   }
   if (TIME <= UP_TIME) {
-    digitalWrite(RPI_POWER_PIN, HIGH);
+    digitalWrite(RPI_POWER_PIN, LOW);
     sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
   }
   else if (TIME <= DOWN_TIME) {
-    digitalWrite(RPI_POWER_PIN, LOW);
+    digitalWrite(RPI_POWER_PIN, HIGH);
     Serial.end();
   }
   else {
     TIME = 0; // reset timer
-    digitalWrite(RPI_POWER_PIN, HIGH);
+    digitalWrite(RPI_POWER_PIN, LOW);
     delay(BOOT_WAIT);
     Serial.begin(BAUD);
   }
