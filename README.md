@@ -27,3 +27,7 @@ After the directory is clean, compile the .ino:
 Lastly, upload the compiled code to the arduino:
 
     $ make upload
+    
+## Problems with Alamode
+1. The serial port cannot be active during boot
+2. No pin can be set to LOW during boot
