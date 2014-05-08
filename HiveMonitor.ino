@@ -21,12 +21,12 @@
 #define DIGITS 4
 #define PRECISION 2
 #define ON_INTERVAL 500
-#define OFF_INTERVAL 100
+#define OFF_INTERVAL 1000
 #define BOOT_WAIT 60000
+#define RESET_WAIT 500
 #define TIMEOUT 20
-#define UP_TIME 300 // seconds until when it will turn off
-#define DOWN_TIME 1200 // seconds until when it will back turn on
-#define DOUBLE_TAP 1000
+#define ON_TIME 300 // seconds until when it will turn off
+#define OFF_TIME 1200 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -59,7 +59,7 @@ int TIME = 0; // seconds on
 void setup() {
   pinMode(RPI_POWER_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, LOW);
-  delay(DOUBLE_TAP);
+  delay(RESET_WAIT);
   digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
@@ -70,21 +70,23 @@ void setup() {
 
 /* --- Loop --- */
 void loop() {
-  TIME++;
-  dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
-  dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
-  dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
-  dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
-  dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
-  dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
-  if (TIME <= UP_TIME) {
-    sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
+  if (TIME < ON_TIME) {
+    dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
+    dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
+    dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
+    dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
+    dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
+    dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
+    sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
     delay(ON_INTERVAL);
   }
-  else if (TIME <= DOWN_TIME) {
-    digitalWrite(RPI_POWER_PIN, LOW);
+  else if (TIME == ON_TIME) {
+    Serial.flush();
     Serial.end();
+    digitalWrite(RPI_POWER_PIN, LOW);
+  }
+  else if (TIME < OFF_TIME) {
     delay(OFF_INTERVAL);
   }
   else {
@@ -93,6 +95,7 @@ void loop() {
     delay(BOOT_WAIT);
     Serial.begin(BAUD);
   }
+  TIME++;
 }
 
 /* --- Sensor Functions --- */
