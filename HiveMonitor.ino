@@ -30,6 +30,7 @@
 #define TIMEOUT 20
 #define UP_TIME 30 // seconds until when it will turn off
 #define DOWN_TIME 60 // seconds until when it will back turn on
+#define PIN_WAIT 200
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -61,8 +62,9 @@ int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
+  digitalWrite(ARDUINO_RESET_PIN, HIGH); // Reset pin off
+  delay(PIN_WAIT);
   digitalWrite(RPI_POWER_PIN, HIGH); // start on
-  digitalWrite(ARDUINO_RESET_PIN, HIGH);
   pinMode(RPI_POWER_PIN, OUTPUT);
   pinMode(ARDUINO_RESET_PIN, OUTPUT);
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
