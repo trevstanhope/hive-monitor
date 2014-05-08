@@ -14,6 +14,7 @@
 #define SD_PIN 10
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
+#define ARDUINO_RESET_PIN A4
 #define RPI_POWER_PIN A5
 
 /* --- Values --- */
@@ -23,8 +24,8 @@
 #define BUFFER 128
 #define DIGITS 4
 #define PRECISION 2
-#define ON_INTERVAL 500
-#define OFF_INTERVAL 1000
+#define ON_INTERVAL 30
+#define OFF_INTERVAL 60
 #define BOOT_WAIT 60000
 #define TIMEOUT 20
 #define UP_TIME 300 // seconds until when it will turn off
@@ -61,6 +62,7 @@ int TIME = 0; // seconds on
 /* --- Setup --- */
 void setup() {
   pinMode(RPI_POWER_PIN, OUTPUT);
+  pinMode(ARDUINO_RESET_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, HIGH); // start on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
@@ -100,10 +102,7 @@ void loop() {
     delay(OFF_INTERVAL);
   }
   else {
-    TIME = 0; // reset timer
-    digitalWrite(RPI_POWER_PIN, HIGH);
-    delay(BOOT_WAIT);
-    Serial.begin(BAUD);
+    digitalWrite(ARDUINO_RESET_PIN, LOW);
   }
 }
 
