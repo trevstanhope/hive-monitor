@@ -27,9 +27,8 @@
 #define OFF_INTERVAL 100
 #define BOOT_WAIT 60000
 #define TIMEOUT 20
-#define UP_TIME 30 // seconds until when it will turn off
-#define DOWN_TIME 60 // seconds until when it will back turn on
-#define PIN_WAIT 200
+#define UP_TIME 300 // seconds until when it will turn off
+#define DOWN_TIME 1200 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
