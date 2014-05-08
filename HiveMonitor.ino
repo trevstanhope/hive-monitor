@@ -61,10 +61,10 @@ int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
-  pinMode(RPI_POWER_PIN, OUTPUT);
-  pinMode(ARDUINO_RESET_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, HIGH); // start on
   digitalWrite(ARDUINO_RESET_PIN, HIGH);
+  pinMode(RPI_POWER_PIN, OUTPUT);
+  pinMode(ARDUINO_RESET_PIN, OUTPUT);
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
