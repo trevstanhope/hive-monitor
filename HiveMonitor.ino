@@ -14,7 +14,6 @@
 #define SD_PIN 10
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
-#define ARDUINO_RESET_PIN A4
 #define RPI_POWER_PIN A5
 
 /* --- Values --- */
@@ -62,11 +61,8 @@ int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
-  digitalWrite(ARDUINO_RESET_PIN, HIGH); // Reset pin off
-  delay(PIN_WAIT);
-  digitalWrite(RPI_POWER_PIN, HIGH); // start on
+  digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   pinMode(RPI_POWER_PIN, OUTPUT);
-  pinMode(ARDUINO_RESET_PIN, OUTPUT);
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
@@ -104,7 +100,9 @@ void loop() {
     delay(OFF_INTERVAL);
   }
   else {
-    digitalWrite(ARDUINO_RESET_PIN, LOW);
+    TIME = 0;
+    digitalWrite(RPI_POWER_PIN, HIGH);
+    delay(BOOT_WAIT);
   }
 }
 
