@@ -24,12 +24,12 @@
 #define BUFFER 128
 #define DIGITS 4
 #define PRECISION 2
-#define ON_INTERVAL 30
-#define OFF_INTERVAL 60
+#define ON_INTERVAL 500
+#define OFF_INTERVAL 100
 #define BOOT_WAIT 60000
 #define TIMEOUT 20
-#define UP_TIME 300 // seconds until when it will turn off
-#define DOWN_TIME 1200 // seconds until when it will back turn on
+#define UP_TIME 30 // seconds until when it will turn off
+#define DOWN_TIME 60 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -64,6 +64,7 @@ void setup() {
   pinMode(RPI_POWER_PIN, OUTPUT);
   pinMode(ARDUINO_RESET_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, HIGH); // start on
+  digitalWrite(ARDUINO_RESET_PIN, HIGH);
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
@@ -91,7 +92,6 @@ void loop() {
     datafile.close();
   }
   if (TIME <= UP_TIME) {
-    digitalWrite(RPI_POWER_PIN, HIGH);
     sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
     delay(ON_INTERVAL);
