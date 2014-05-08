@@ -29,6 +29,7 @@
 #define TIMEOUT 20
 #define UP_TIME 300 // seconds until when it will turn off
 #define DOWN_TIME 1200 // seconds until when it will back turn on
+#define DOUBLE_TAP 100
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -60,8 +61,10 @@ int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
-  digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   pinMode(RPI_POWER_PIN, OUTPUT);
+  digitalWrite(RPI_POWER_PIN, LOW);
+  delay(DOUBLE_TAP);
+  digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
