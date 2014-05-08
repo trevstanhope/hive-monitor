@@ -26,7 +26,7 @@
 #define RESET_WAIT 500
 #define TIMEOUT 20
 #define ON_TIME 60 // seconds until when it will turn off
-#define OFF_TIME 240 // seconds until when it will back turn on
+#define OFF_TIME 360 // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
