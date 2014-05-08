@@ -103,6 +103,7 @@ void loop() {
     TIME = 0;
     digitalWrite(RPI_POWER_PIN, HIGH);
     delay(BOOT_WAIT);
+    Serial.begin(BAUD);
   }
 }
 
