@@ -7,11 +7,8 @@
 /* --- Libraries --- */
 #include "stdio.h"
 #include <DHT.h>
-#include <SoftwareSerial.h>
-#include <SD.h>
 
 /* --- Pins --- */
-#define SD_PIN 10
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
 #define RPI_POWER_PIN A5
@@ -53,7 +50,6 @@ char AMPS[CHARS];
 
 /* --- Line Buffers --- */
 char JSON[BUFFER];
-char CSV[BUFFER];
 char COMMAND;
 
 /* --- State --- */
@@ -68,10 +64,6 @@ void setup() {
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   Serial.setTimeout(TIMEOUT);
-  pinMode(SD_PIN, OUTPUT);
-  if (!SD.begin(SD_PIN)) {
-    return;
-  }
   INT_DHT.begin();
   EXT_DHT.begin();
 }
@@ -85,12 +77,6 @@ void loop() {
   dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
   dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
   dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
-  sprintf(CSV, "%d,%s,%s,%s,%s,%s,%s", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
-  File datafile = SD.open("datalog.txt", FILE_WRITE);
-  if (datafile) {
-    datafile.println(CSV);
-    datafile.close();
-  }
   if (TIME <= UP_TIME) {
     sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", UP_TIME - TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
