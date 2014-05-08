@@ -29,7 +29,7 @@
 #define TIMEOUT 20
 #define UP_TIME 300 // seconds until when it will turn off
 #define DOWN_TIME 1200 // seconds until when it will back turn on
-#define DOUBLE_TAP 100
+#define DOUBLE_TAP 1000
 
 /* --- Functions --- */
 float get_int_temp(void);
