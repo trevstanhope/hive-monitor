@@ -11,6 +11,7 @@
 /* --- Pins --- */
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
+#define RESET_PIN A4
 #define RPI_POWER_PIN A5
 
 /* --- Values --- */
@@ -27,6 +28,7 @@
 #define TIMEOUT 20
 #define ON_TIME 60 // seconds until when it will turn off
 #define OFF_TIME 360 // seconds until when it will back turn on
+#define PIN_WAIT 200
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -57,6 +59,9 @@ int TIME = 0; // seconds on
 
 /* --- Setup --- */
 void setup() {
+  digitalWrite(RESET_PIN, HIGH);
+  delay(PIN_WAIT);
+  pinMode(RESET_PIN, OUTPUT);
   pinMode(RPI_POWER_PIN, OUTPUT);
   digitalWrite(RPI_POWER_PIN, LOW);
   delay(RESET_WAIT);
@@ -82,18 +87,13 @@ void loop() {
     delay(ON_INTERVAL);
   }
   else if (TIME == ON_TIME) {
-    Serial.flush();
-    Serial.end();
     digitalWrite(RPI_POWER_PIN, LOW);
   }
   else if (TIME < OFF_TIME) {
     delay(OFF_INTERVAL);
   }
   else {
-    TIME = 0;
-    digitalWrite(RPI_POWER_PIN, HIGH);
-    delay(BOOT_WAIT);
-    Serial.begin(BAUD);
+    digitalWrite(RESET_PIN, LOW);
   }
   TIME++;
 }
