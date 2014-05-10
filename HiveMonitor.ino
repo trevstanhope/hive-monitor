@@ -94,6 +94,8 @@ void loop() {
     delay(ON_INTERVAL);
   }
   else if (TIME == ON_TIME) {
+    Serial.flush();
+    Serial.end();
     digitalWrite(RPI_POWER_PIN, LOW);
   }
   else if (TIME < OFF_TIME) {
