@@ -68,7 +68,6 @@ void setup() {
   delay(PIN_WAIT);
   pinMode(RESET_PIN, OUTPUT);
   pinMode(RPI_POWER_PIN, OUTPUT);
-  digitalWrite(RPI_POWER_PIN, LOW);
   delay(RESET_WAIT);
   digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
