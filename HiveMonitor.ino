@@ -34,6 +34,7 @@
 #define OFF_TIME 120 // seconds until when it will back turn on
 #define PIN_WAIT 200
 #define SERIAL_WAIT 1000 // wait for serial connection to start
+#define SHUTDOWN_WAIT 5000
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -82,7 +83,7 @@ void loop() {
   while (Serial.available() > 0) {
     INCOMING = Serial.read();
   }
-  if (TIME < ON_TIME) {
+  if ((TIME < ON_TIME) && (TIME >= 0)) {
     dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
     dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
     dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
@@ -96,9 +97,10 @@ void loop() {
   else if (TIME == ON_TIME) {
     Serial.flush();
     Serial.end();
+    delay(SHUTDOWN_WAIT);
     digitalWrite(RPI_POWER_PIN, LOW);
   }
-  else if (TIME < OFF_TIME) {
+  else if ((TIME < OFF_TIME) && (TIME >= 0)) {
     delay(OFF_INTERVAL);
   }
   else {
