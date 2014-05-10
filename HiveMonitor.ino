@@ -25,7 +25,6 @@
 #define OFF_INTERVAL 1000
 #define BOOT_WAIT 60000
 #define RESET_WAIT 500
-#define TIMEOUT 20
 #define ON_TIME 60 // seconds until when it will turn off
 #define OFF_TIME 360 // seconds until when it will back turn on
 #define PIN_WAIT 200
@@ -56,6 +55,7 @@ char COMMAND;
 
 /* --- State --- */
 int TIME = 0; // seconds on
+int INCOMING = 0;
 
 /* --- Setup --- */
 void setup() {
@@ -68,13 +68,15 @@ void setup() {
   digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
-  Serial.setTimeout(TIMEOUT);
   INT_DHT.begin();
   EXT_DHT.begin();
 }
 
 /* --- Loop --- */
 void loop() {
+  while (Serial.available() > 0) {
+    INCOMING = Serial.read();
+  }
   if (TIME < ON_TIME) {
     dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
     dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
