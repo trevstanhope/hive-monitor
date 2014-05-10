@@ -51,7 +51,6 @@ char AMPS[CHARS];
 
 /* --- Line Buffers --- */
 char JSON[BUFFER];
-char COMMAND;
 
 /* --- State --- */
 int TIME = 0; // seconds on
@@ -86,6 +85,7 @@ void loop() {
     dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
     sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", TIME, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
     Serial.println(JSON);
+    Serial.flush();
     delay(ON_INTERVAL);
   }
   else if (TIME == ON_TIME) {
