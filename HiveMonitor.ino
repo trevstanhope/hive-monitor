@@ -2,6 +2,11 @@
   HiveMonitor
   Developed by Trevor Stanhope
   DAQ controller for hive sensor monitoring.
+  
+  Possible problems with serial:
+    - serial in gets clogged with garbage
+    - sometimes it takes a while to establish the serial connection to the rpi
+    - sometimes it takes a while to connect to the wifi, increasing the boot wait time
 */
 
 /* --- Libraries --- */
@@ -26,8 +31,9 @@
 #define BOOT_WAIT 60000
 #define RESET_WAIT 500
 #define ON_TIME 60 // seconds until when it will turn off
-#define OFF_TIME 360 // seconds until when it will back turn on
+#define OFF_TIME 60 // seconds until when it will back turn on
 #define PIN_WAIT 200
+#define SERIAL_WAIT 1000 // wait for serial connection to start
 
 /* --- Functions --- */
 float get_int_temp(void);
@@ -67,12 +73,14 @@ void setup() {
   digitalWrite(RPI_POWER_PIN, HIGH); // Start with relay on
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
+  delay(SERIAL_WAIT); // wait for serial to establish
   INT_DHT.begin();
   EXT_DHT.begin();
 }
 
 /* --- Loop --- */
 void loop() {
+  // Flush incoming serial buffer to prevent mem leaks
   while (Serial.available() > 0) {
     INCOMING = Serial.read();
   }
