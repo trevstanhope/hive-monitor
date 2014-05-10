@@ -31,7 +31,7 @@
 #define BOOT_WAIT 60000
 #define RESET_WAIT 500
 #define ON_TIME 60 // seconds until when it will turn off
-#define OFF_TIME 60 // seconds until when it will back turn on
+#define OFF_TIME 120 // seconds until when it will back turn on
 #define PIN_WAIT 200
 #define SERIAL_WAIT 1000 // wait for serial connection to start
 
