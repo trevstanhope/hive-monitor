@@ -13,28 +13,28 @@
 #include "stdio.h"
 #include <DHT.h>
 
-/* --- Pins --- */
+/* --- Definitions --- */
 #define DHT_INTERNAL_PIN A0
 #define DHT_EXTERNAL_PIN A1
+#define DHT_TYPE DHT22
 #define RESET_PIN A4
 #define RPI_POWER_PIN A5
 
-/* --- Values --- */
-#define DHT_TYPE DHT22
-#define BAUD 9600
-#define CHARS 8
-#define BUFFER 128
-#define DIGITS 4
-#define PRECISION 2
-#define ON_INTERVAL 500
-#define OFF_INTERVAL 1000
-#define BOOT_WAIT 60000
-#define RESET_WAIT 500
-#define ON_TIME 60 // seconds until when it will turn off
-#define OFF_TIME 1200 // seconds until when it will back turn on
-#define PIN_WAIT 200
-#define SERIAL_WAIT 1000 // wait for serial connection to start
-#define SHUTDOWN_WAIT 5000
+/* --- Constants --- */
+const int BAUD = 9600;
+const int CHARS = 8;
+const int BUFFER = 128;
+const int DIGITS = 4;
+const int PRECISION = 2;
+const int ON_INTERVAL = 500;
+const int OFF_INTERVAL = 1000;
+const int BOOT_WAIT = 60000;
+const int RESET_WAIT = 500; //
+const int PIN_WAIT = 200; // wait for pin to initialize
+const int SERIAL_WAIT = 1000; // wait for serial connection to start
+const int SHUTDOWN_WAIT = 5000; // wait for pi to shutdown
+const int ON_TIME = 60; // seconds until when it will turn off
+const int OFF_TIME = 1200; // seconds until when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
