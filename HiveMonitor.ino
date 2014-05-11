@@ -21,20 +21,20 @@
 #define RPI_POWER_PIN A5
 
 /* --- Constants --- */
-const int BAUD = 9600;
-const int CHARS = 8;
-const int BUFFER = 128;
-const int DIGITS = 4;
-const int PRECISION = 2;
-const int ON_WAIT = 500;
-const int OFF_WAIT = 1000;
-const int BOOT_WAIT = 60000;
-const int RESET_WAIT = 500; //
-const int PIN_WAIT = 200; // wait for pin to initialize
-const int SERIAL_WAIT = 1000; // wait for serial connection to start
-const int SHUTDOWN_WAIT = 5000; // wait for pi to shutdown
-const int ON_CYCLES = 60; // counter value when it will turn off
-const int OFF_CYCLES = 1200; // counter value when it will back turn on
+const unsigned int BAUD = 9600;
+const unsigned int CHARS = 8;
+const unsigned int BUFFER = 128;
+const unsigned int DIGITS = 4;
+const unsigned int PRECISION = 2;
+const unsigned int ON_WAIT = 500;
+const unsigned int OFF_WAIT = 1000;
+const unsigned int BOOT_WAIT = 60000;
+const unsigned int RESET_WAIT = 500; //
+const unsigned int PIN_WAIT = 200; // wait for pin to initialize
+const unsigned int SERIAL_WAIT = 1000; // wait for serial connection to start
+const unsigned int SHUTDOWN_WAIT = 5000; // wait for pi to shutdown
+const unsigned int ON_CYCLES = 60; // counter value when it will turn off
+const unsigned int OFF_CYCLES = 1200; // counter value when it will back turn on
 
 /* --- Functions --- */
 float get_int_temp(void);
