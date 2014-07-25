@@ -1,24 +1,23 @@
 /* 
-  HiveMonitor
+  Hive Monitor ("Power Cycle" Version)
   Developed by Trevor Stanhope
   DAQ controller for hive sensor monitoring.
-  
-  Possible problems with serial:
-    - serial in gets clogged with garbage
-    - sometimes it takes a while to establish the serial connection to the rpi
-    - sometimes it takes a while to connect to the wifi, increasing the boot wait time
 */
 
 /* --- Libraries --- */
 #include "stdio.h"
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
 #include <DHT.h>
 
 /* --- Definitions --- */
-#define DHT_INTERNAL_PIN A0
-#define DHT_EXTERNAL_PIN A1
+#define DHT_INTERNAL_PIN 4
+#define DHT_EXTERNAL_PIN 5
+#define VOLTS_PIN A0
+#define AMPS_PIN A1
+#define RESET_PIN A2
+#define RPI_POWER_PIN A3
 #define DHT_TYPE DHT22
-#define RESET_PIN A4
-#define RPI_POWER_PIN A5
 
 /* --- Constants --- */
 const unsigned int BAUD = 9600;
@@ -28,7 +27,7 @@ const unsigned int DIGITS = 4;
 const unsigned int PRECISION = 2;
 const unsigned int ON_WAIT = 500;
 const unsigned int OFF_WAIT = 1000;
-const unsigned int BOOT_WAIT = 60000;
+const unsigned int BOOT_WAIT = 5000;
 const unsigned int RESET_WAIT = 500; //
 const unsigned int PIN_WAIT = 200; // wait for pin to initialize
 const unsigned int SERIAL_WAIT = 1000; // wait for serial connection to start
@@ -45,16 +44,18 @@ float get_volts(void);
 float get_amps(void);
 
 /* --- Objects --- */
-DHT INT_DHT(DHT_INTERNAL_PIN, DHT_TYPE);
-DHT EXT_DHT(DHT_EXTERNAL_PIN, DHT_TYPE);
+DHT int_dht(DHT_INTERNAL_PIN, DHT_TYPE);
+DHT ext_dht(DHT_EXTERNAL_PIN, DHT_TYPE);
+Adafruit_BMP085 bmp;
 
 /* --- Variables --- */
-char INT_T[CHARS];
-char INT_H[CHARS];
-char EXT_T[CHARS];
-char EXT_H[CHARS];
+char INT_TEMPERATURE[CHARS];
+char INT_HUMIDITY[CHARS];
+char EXT_TEMPERATURE[CHARS];
+char EXT_HUMIDITY[CHARS];
 char VOLTS[CHARS];
 char AMPS[CHARS];
+char PASCALS[CHARS];
 char JSON[BUFFER];
 int CYCLES = 0;
 int INCOMING = 0;
@@ -69,8 +70,9 @@ void setup() {
   delay(BOOT_WAIT); // Serial cannot be on during RPi boot
   Serial.begin(BAUD);
   delay(SERIAL_WAIT); // wait for serial to establish
-  INT_DHT.begin();
-  EXT_DHT.begin();
+  int_dht.begin();
+  ext_dht.begin();
+  bmp.begin();
 }
 
 /* --- Loop --- */
@@ -80,13 +82,14 @@ void loop() {
     INCOMING = Serial.read();
   }
   if (CYCLES < ON_CYCLES) {
-    dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_T); 
-    dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_H);
-    dtostrf(get_int_temp(), DIGITS, PRECISION, INT_T);
-    dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_H);
+    dtostrf(get_ext_temp(), DIGITS, PRECISION, EXT_TEMPERATURE); 
+    dtostrf(get_ext_humidity(), DIGITS, PRECISION, EXT_HUMIDITY);
+    dtostrf(get_int_temp(), DIGITS, PRECISION, INT_TEMPERATURE);
+    dtostrf(get_int_humidity(), DIGITS, PRECISION, INT_HUMIDITY);
+    dtostrf(get_pressure(), DIGITS, PRECISION, PASCALS);
     dtostrf(get_volts(), DIGITS, PRECISION, VOLTS);
     dtostrf(get_amps(), DIGITS, PRECISION, AMPS);
-    sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s}", CYCLES, INT_T, EXT_T, INT_H, EXT_H, VOLTS, AMPS);
+    sprintf(JSON, "{'cycles':%d,'int_t':%s,'ext_t':%s,'int_h':%s,'ext_h':%s,'volts':%s,'amps':%s, 'bars':%s}", CYCLES, INT_TEMPERATURE, EXT_TEMPERATURE, INT_HUMIDITY, EXT_HUMIDITY, VOLTS, AMPS, PASCALS);
     Serial.println(JSON);
     delay(ON_WAIT);
   }
@@ -108,7 +111,7 @@ void loop() {
 /* --- Sensor Functions --- */
 // Internal Humidity
 float get_int_humidity() {
-  float val = INT_DHT.readHumidity();
+  float val = int_dht.readHumidity();
   if (isnan(val)) {
     return 0;
   }
@@ -119,7 +122,7 @@ float get_int_humidity() {
 
 // Internal Temperature
 float get_int_temp() {
-  float val = INT_DHT.readTemperature(); //  Serial.println(val);
+  float val = int_dht.readTemperature(); //  Serial.println(val);
   if (isnan(val)) {
     return 0;
   }
@@ -130,7 +133,7 @@ float get_int_temp() {
 
 // Get External Humidity
 float get_ext_humidity() {
-  float val = EXT_DHT.readHumidity();
+  float val = ext_dht.readHumidity();
   if (isnan(val)) {
     return 0;
   }
@@ -141,7 +144,7 @@ float get_ext_humidity() {
 
 // Get External Temperature
 float get_ext_temp() {
-  float val = EXT_DHT.readTemperature();
+  float val = ext_dht.readTemperature();
   if (isnan(val)) {
     return 0;
   }
@@ -150,26 +153,20 @@ float get_ext_temp() {
   }
 }
 
+// Barometric Pressure
+float get_pressure() {
+  float val = bmp.readPressure();
+  return val;
+}
+
 // Amperage
 float get_amps() {
-//  float val = external.readTemperature();
-//  if (isnan(val)) {
-//    return 0;
-//  }
-//  else {
-//    return 1;
-//  }
-  return 1;
+  float val = (512 - analogRead(AMPS_PIN)) / 30.0;
+  return val;
 }
 
 // Voltage
 float get_volts() {
-//  float val = external.readTemperature();
-//  if (isnan(val)) {
-//    return 0;
-//  }
-//  else {
-//    return 1;
-//  }
-  return 1;
+  float val = analogRead(VOLTS_PIN) / 40.96;
+  return val;
 }
